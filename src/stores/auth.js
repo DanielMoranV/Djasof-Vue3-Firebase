@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { createUserWithEmailAndPassword, onAuthStateChanged, sendEmailVerification, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { auth, db, storage } from '../firebaseConfig';
-import { doc, setDoc } from 'firebase/firestore/lite';
+import { doc, setDoc } from 'firebase/firestore';
 import router from '../router';
 import { useDataUserStore } from './dataUser';
 

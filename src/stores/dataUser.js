@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc } from 'firebase/firestore/lite';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { defineStore } from 'pinia';
 import { auth } from '../firebaseConfig';
@@ -7,26 +7,51 @@ import { nanoid } from 'nanoid';
 export const useDataUserStore = defineStore('dataUserStore', {
     state: () => ({
         dataUser: [],
-        loadingDataUser: false
+        loadingDataUser: false,
+        unsubscribe: null // Agregamos una propiedad para almacenar el unsubscribing
     }),
     actions: {
         async getUsers() {
             if (this.dataUser.length === 0) {
                 this.loadingDataUser = true;
                 try {
-                    const q = query(collection(db, 'users'));
-                    const querySnapshot = await getDocs(q);
-                    this.dataUser = querySnapshot.docs.map((doc) => {
-                        return {
+                    // Escuchar cambios en tiempo real en la colección "users"
+                    this.unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
+                        this.dataUser = snapshot.docs.map((doc) => ({
                             id: doc.id,
                             ...doc.data()
-                        };
+                        }));
                     });
                 } catch (error) {
                     console.log(error);
                 } finally {
                     this.loadingDataUser = false;
                 }
+            }
+        },
+        async getUsersRealTime() {
+            this.loadingDataUser = true;
+            try {
+                // Escuchar cambios en tiempo real en la colección "users"
+                this.unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
+                    this.dataUser = snapshot.docs.map((doc) => {
+                        return {
+                            id: doc.id,
+                            ...doc.data()
+                        };
+                    });
+                });
+            } catch (error) {
+                console.log(error);
+            } finally {
+                this.loadingDataUser = false;
+            }
+        },
+        unsubscribeUsersRealTime() {
+            // Cancelar la suscripción a los cambios en tiempo real en la colección "users"
+            if (this.unsubscribe) {
+                this.unsubscribe();
+                this.unsubscribe = null;
             }
         },
         async addUsers(name) {

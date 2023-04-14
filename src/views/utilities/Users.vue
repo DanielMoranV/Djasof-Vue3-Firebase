@@ -30,14 +30,19 @@ onBeforeMount(() => {
 });
 
 onMounted(async () => {
-    await dataUserStore.getUsers();
+    await dataUserStore.getUsersRealTime();
     users.value = dataUserStore.dataUser;
-    console.log(users.value);
+    console.log('fin de carga de datos:', users.value);
 });
 
 onUnmounted(() => {
-    // Realizar unsubscribing aquí:
-    dataUserStore.unsubscribe(); // Llamar a la función unsubscribe del store
+    if (dataUserStore.unsubscribe) {
+        // Si la propiedad unsubscribe tiene un valor, significa que se ha realizado la suscripción
+        // y podemos llamar a la función unsubscribe para cancelarla
+        dataUserStore.unsubscribe();
+        // Luego, podemos establecer la propiedad unsubscribe en null para indicar que no hay una suscripción activa
+        dataUserStore.unsubscribe = null;
+    }
 });
 const openNew = () => {
     user.value = {};
